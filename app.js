@@ -4,7 +4,10 @@ require("dotenv").config();
 const session = require("express-session");
 const MongoDBStore = require("connect-mongodb-session")(session);
 const flash = require("connect-flash");
-
+const passport = require("passport");
+const passportInit = require("./passport/passportInit");
+const secretWordRouter = require("./routes/secretWord");
+const auth = require("./middleware/auth");
 const app = express();
 app.set("view engine", "ejs");
 app.use(require("body-parser").urlencoded({ extended: true }));
@@ -40,34 +43,28 @@ if (app.get("env") === "production") {
 // Use session middleware
 app.use(session(sessionParms));
 
+// Passport middleware
+passportInit();
+app.use(passport.initialize());
+app.use(passport.session());
+
 
 app.use(flash());
 
 // Middleware to set flash messages in res.locals
-app.use((req, res, next) => {
-  res.locals.info = req.flash("info");
-  res.locals.errors = req.flash("error");
-  next(); 
+// app.use((req, res, next) => {
+//   res.locals.info = req.flash("info");
+//   res.locals.errors = req.flash("error");
+//   next(); 
+// });
+app.use(require("./middleware/storeLocals"));
+app.get("/", (req, res) => {
+  res.render("index");
 });
+app.use("/sessions", require("./routes/sessionRoutes"));
 
-// Secret word handling
-app.get("/secretWord", (req, res) => {
-  if (!req.session.secretWord) {
-    req.session.secretWord = "syzygy";
-  }
-  res.render("secretWord", { secretWord: req.session.secretWord });
-});
-
-app.post("/secretWord", (req, res) => {
-  if (req.body.secretWord.toUpperCase()[0] === "P") {
-    req.flash("error", "That word won't work!");
-    req.flash("error", "You can't use words that start with P.");
-  } else {
-    req.session.secretWord = req.body.secretWord;
-    req.flash("info", "The secret word was changed.");
-  }
-  res.redirect("/secretWord");
-});
+// Protect the /secretWord route with auth middleware
+app.use("/secretWord", auth, secretWordRouter); 
 
 // Handle 404
 app.use((req, res) => {
@@ -82,10 +79,13 @@ app.use((err, req, res, next) => {
 });
 
 
+
+
 const port = process.env.PORT || 3000;
 
 const start = async () => {
   try {
+    await require("./db/connect")(process.env.MONGO_URI);
     app.listen(port, () => {
       console.log(`Server is listening on port ${port}...`);
     });
