@@ -35,6 +35,8 @@ const logoff = (req, res) => {
 };
 
 const logonShow = (req, res) => {
+  // console.log(req);
+  // console.log(req.csrf)
   if (req.user) {
     return res.redirect("/");
   }

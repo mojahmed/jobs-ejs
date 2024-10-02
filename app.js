@@ -31,8 +31,13 @@ const sessionParms = {
   resave: true,
   saveUninitialized: true,
   store: store,
-  cookie: { secure: app.get("env") === "production", sameSite: "strict" },
+  cookie: { secure: false, sameSite: "strict" },
 };
+
+if (app.get("env") === "production") {
+  app.set("trust proxy", 1); 
+  sessionParms.cookie.secure = true; 
+}
 
 app.use(session(sessionParms));
 
@@ -54,13 +59,22 @@ app.use(flash());
 app.use(require("./middleware/storeLocals"));
 
 // Routes
+
+
+// Logon route with CSRF token
+app.use(require("./middleware/storeLocals.js"));
+
+
+
+
+
 app.get("/", csrf_middleware, (req, res) => {
   res.render('index');
 });
 
-// Logon route with CSRF token
-
-
+app.get("/logon", csrf_middleware, (req, res) => {
+  res.render("logon", {csrfToken: req.signedCookies.csrfToken});
+});
 // Other routes
 app.use("/sessions", csrf_middleware, require("./routes/sessionRoutes"));
 app.use("/secretWord", auth, csrf_middleware, secretWordRouter);

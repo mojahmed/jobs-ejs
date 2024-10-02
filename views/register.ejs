@@ -1,7 +1,6 @@
 <%- include("partials/head.ejs") %>
 <%- include("partials/header.ejs") %>
-<form method="POST" action="/sessions/register">
-  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+<form method="POST">
   <div>
     <label name="name">Enter your name:</label>
     <input name="name" />
