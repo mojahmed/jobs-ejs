@@ -24,12 +24,16 @@ app.use(helmet()); // Sets various HTTP headers for security
 app.use(xss()); // Sanitize user input to prevent XSS attacks
 app.use(limiter); // Apply the rate limiting middleware
 
-const url = process.env.MONGO_URI;
+// const url = process.env.MONGO_URI;
+
+
 const MongoDBStore = require("connect-mongodb-session")(session);
 let mongoURL = process.env.MONGO_URI;
 if (process.env.NODE_ENV !== 'production') {
   process.env.NODE_ENV = 'test'; 
 }
+
+
 
 const store = new MongoDBStore({
   uri: mongoURL,
@@ -80,8 +84,55 @@ app.use(passport.session());
 
 app.use(require("connect-flash")());
 app.use(require("./middleware/storeLocals"));
+
 app.get("/", (req, res) => {
   res.render("index");
+});
+
+
+// Multiply endpoint
+// app.get("/multiply", (req, res) => {
+//   const first = parseFloat(req.query.first);
+//   const second = parseFloat(req.query.second);
+
+//   if (isNaN(first) || isNaN(second)) {
+//     return res.status(400).json({ result: "NaN" });
+//   }
+
+//   const result = first * second;
+//   res.json({ result });
+// });
+
+// // Middleware for setting Content-Type
+// app.use((req, res, next) => {
+//   if (req.path === "/multiply") {
+//     res.set("Content-Type", "application/json");
+//   } else {
+//     res.set("Content-Type", "text/html");
+//   }
+//   next();
+// });
+
+app.get("/multiply", (req, res) => {
+  const first = parseFloat(req.query.first);
+  const second = parseFloat(req.query.second);
+  
+  // Check if either of the inputs is NaN
+  if (isNaN(first) || isNaN(second)) {
+      return res.status(200).json({ result: "NaN" });
+  }
+  
+  const result = first * second;
+  res.json({ result: result });
+});
+
+app.use((req, res, next) => {
+  if (req.path == "/multiply") {
+    res.set("Content-Type", "application/json");
+  } else {
+    res.set("Content-Type", "text/html");
+  }
+  next();
 });
 
 app.use("/sessions", require("./routes/sessionRoutes"));
@@ -102,17 +153,14 @@ app.use((err, req, res, next) => {
 
 const port = process.env.PORT || 3000;
 
-const start = async () => {
+const start = () => {
   try {
-    if (!url || !process.env.SESSION_SECRET) {
-      throw new Error("Missing environment variables.");
-    }
-    await require("./db/connect")(url);
-    app.listen(port, () => {
-      console.log(`Server is listening on port ${port}...`);
-    });
+    require("./db/connect")(mongoURL);
+    return app.listen(port, () =>
+      console.log(`Server is listening on port ${port}...`),
+    );
   } catch (error) {
-    console.error(error);
+    console.log(error);
   }
 };
 
