@@ -1,4 +1,4 @@
-// tests/test_multiply_api.js
+
 const { app } = require("../app");
 const get_chai = require("../util/get_chai");
 
