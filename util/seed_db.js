@@ -95,7 +95,7 @@ const seed_db = async () => {
     } catch (e) {
       console.log("Database error");
       console.log(e.message);
-      throw e; // Rethrow the error to handle it later
+      throw e; 
     }
   
     return testUser;
