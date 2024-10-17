@@ -63,12 +63,12 @@ describe("Job CRUD Operations", function () {
     };
     const req = request
       .execute(app)
-      .post("/sessions/logon") // Adjust this path based on your routes
+      .post("/") // Adjust this path based on your routes
       .set("Cookie", [this.csrfCookie, this.sessionCookie].join("; ")) /// do i have to add only one time with get or post
-      .set("content-type", "application/x-www-form-urlencoded")
+      .set("content-type", "application/x-www-form-urlencoded", )
       .send(dataToPost);
     const res = await req;
-    expect(res).to.have.status(302);
+    expect(res).to.have.status(200);
     // Verify the job was added
     const jobs = await Job.find({ createdBy: this.test_user._id });
     expect(jobs.length).to.equal(21); // Verify the count
