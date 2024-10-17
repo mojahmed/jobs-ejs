@@ -63,7 +63,7 @@ describe("Job CRUD Operations", function () {
     };
     const req = request
       .execute(app)
-      .post("/") // Adjust this path based on your routes
+      .post("/jobs") // Adjust this path based on your routes
       .set("Cookie", [this.csrfCookie, this.sessionCookie].join("; ")) /// do i have to add only one time with get or post
       .set("content-type", "application/x-www-form-urlencoded", )
       .send(dataToPost);
